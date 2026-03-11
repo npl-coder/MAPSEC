@@ -1,0 +1,17 @@
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+req_extensions = v3_req
+
+[dn]
+CN = misp.local
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = misp.local
+DNS.2 = opensearch.local
+DNS.3 = opensearch-dashboards.local

@@ -1,13 +1,7 @@
-#gFD7kvntstnXCN25q9phQ5Cb6U2WcpiLY7wMFIob
 from mcp.server.fastmcp import FastMCP, Context
-from pymisp import PyMISP, MISPEvent, MISPAttribute, MISPTag
+from pymisp import PyMISP, MISPEvent
 import os
-import json
 from datetime import datetime, timedelta
-import asyncio
-import hashlib
-import re
-from typing import List, Dict, Optional, Any, Union
 
 # Create an MCP server
 mcp = FastMCP("MISP Threat Intelligence")
@@ -384,7 +378,7 @@ async def submit_ioc(
         event.analysis = 0  # Initial
         
         # Add the IoC as an attribute
-        attribute = event.add_attribute(
+        event.add_attribute(
             type=ioc_type,
             value=ioc_value,
             category=category,
@@ -553,7 +547,7 @@ async def generate_threat_report(
             return f"No events found matching the criteria in the last {days} days."
         
         # Build the report
-        report = f"# MISP Threat Intelligence Report\n\n"
+        report = "# MISP Threat Intelligence Report\n\n"
         report += f"**Period:** Last {days} days ({start_date} to {now.strftime('%Y-%m-%d')})\n"
         report += f"**Platforms:** {platforms}\n"
         report += f"**Threat Level:** {threat_level}\n\n"

@@ -1,0 +1,2 @@
+# Generated certs (run gen-certs.sh to create)
+*.pem

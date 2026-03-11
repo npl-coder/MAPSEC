@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.9.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - mispnet
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.9.0
+    environment:
+      # Internal URL (container -> container on Docker network)
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - OPENSEARCH_SSL_VERIFICATIONMODE=none
+    ports:
+      - "5601:5601"
+    depends_on:
+      - opensearch
+    networks:
+      - mispnet
+
+  mariadb:
+    image: mariadb:10.6
+    environment:
+      - MYSQL_ROOT_PASSWORD=misprootpass
+      - MYSQL_DATABASE=misp
+      - MYSQL_USER=misp
+      - MYSQL_PASSWORD=misp_pass
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    networks:
+      - mispnet
+
+  redis:
+    image: redis:6
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - mispnet
+
+  misp:
+    image: harvarditsecurity/misp:latest
+    depends_on:
+      - mariadb
+      - redis
+    ports:
+      - "8443:443"   # HTTPS for nginx (host.docker.internal:8443)
+    environment:
+      - MYSQL_HOST=mariadb
+      - MYSQL_ROOT_PASSWORD=misprootpass
+      - MYSQL_DATABASE=misp
+      - MYSQL_USER=misp
+      - MYSQL_PASSWORD=misp_pass
+      # Use nginx vhost (HTTPS on 443); add 127.0.0.1 misp.local to /etc/hosts
+      - MISP_BASEURL=https://misp.local
+      - MISP_FQDN=https://misp.local
+      - MISP_ADM_EMAIL=admin@admin.test
+      - MISP_ADM_PW=changeme
+      # Internal URL (container -> container). Use https://opensearch.local in the browser.
+      - MISP_OPENSEARCH_HOST=opensearch:9200
+    volumes:
+      - misp-data:/var/www/MISP
+      - ./misp_config/database.php:/var/www/MISP/app/Config/database.php:ro
+    networks:
+      - mispnet
+
+volumes:
+  opensearch-data:
+  mariadb-data:
+  redis-data:
+  misp-data:
+
+networks:
+  mispnet:
+    driver: bridge
