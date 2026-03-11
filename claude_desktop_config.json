@@ -1,0 +1,38 @@
+{
+    "mcpServers": {
+      "opensearch": {
+        "command": "path/to/opensearch-mcp-server-py/.venv/bin/python",
+        "args": [
+          "-m",
+          "mcp_server_opensearch",
+          "--transport",
+          "stdio"
+        ],
+        "env": {
+          "OPENSEARCH_URL": "https://opensearch.local",
+          "VERIFY_CERTS": false,
+          "OPENSEARCH_USE_AWS_AUTH": false,
+          "OPENSEARCH_USERNAME": "<default is admin>",
+          "OPENSEARCH_PASSWORD": "<default is admin>",
+          "OPENSEARCH_USE_SSL": false,
+          "OPENSEARCH_VERIFY_CERTS": false,
+          "AWS_REGION": "us-east-1"
+        }
+      },
+      "MISP Threat Intelligence": {
+        "command": "path/to/mcp/venv/bin/python",
+        "args": [
+          "path/to/misp_mcp_server.py"
+        ],
+        "env": {
+          "MISP_URL": "https://misp.local",
+          "MISP_API_KEY": "<api_key>",
+          "MISP_VERIFY_SSL": "false"
+        }
+      }
+    },
+    "preferences": {
+      "sidebarMode": "chat",
+      "coworkScheduledTasksEnabled": false
+    }
+  }
