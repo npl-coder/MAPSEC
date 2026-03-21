@@ -1,0 +1,23 @@
+{
+  "id": "alert-2026-0314-001",
+  "source": "opensearch",
+  "timestamp": "2026-03-14T02:15:00Z",
+  "description": "Multiple SMB connection attempts from external IP to internal host, followed by PsExec execution",
+  "data": {
+    "src_ip": "185.220.101.45",
+    "dst_ip": "10.0.0.50",
+    "dst_port": 445,
+    "event_type": "connection_attempt",
+    "connection_count": 847,
+    "process_name": "psexec.exe",
+    "protocol": "SMB",
+    "alert_rule": "High volume SMB connections from external source",
+    "additional_context": {
+      "dst_hostname": "WORKSTATION-050",
+      "dst_os": "Windows 10 Enterprise",
+      "network_zone": "corporate-lan",
+      "first_seen": "2026-03-14T02:10:00Z",
+      "last_seen": "2026-03-14T02:15:00Z"
+    }
+  }
+}

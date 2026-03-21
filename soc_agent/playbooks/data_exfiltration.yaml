@@ -1,0 +1,74 @@
+name: "Data Exfiltration Investigation Playbook"
+trigger_keywords:
+  - data exfiltration
+  - data leak
+  - data theft
+  - unusual upload
+  - dns tunneling
+  - large outbound transfer
+  - cloud storage upload
+  - sensitive data
+severity_threshold: "CRITICAL"
+mitre_techniques:
+  - "T1041"      # Exfiltration Over C2 Channel
+  - "T1048"      # Exfiltration Over Alternative Protocol
+  - "T1071.004"  # Application Layer Protocol: DNS
+  - "T1567"      # Exfiltration Over Web Service
+  - "T1560"      # Archive Collected Data
+steps:
+  - id: 1
+    action: "identify_exfil_method"
+    description: "Determine the exfiltration method — DNS tunneling, HTTP upload, cloud sync, encrypted channel"
+    automated: true
+    agent: "triage"
+  - id: 2
+    action: "enrich_destinations"
+    description: "Enrich all external destination IPs and domains involved in the data transfer"
+    automated: true
+    agent: "ioc_enrichment"
+  - id: 3
+    action: "hunt_dns_tunneling"
+    description: "Search for DNS tunneling indicators — high-entropy subdomain queries, unusual TXT records"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "dns.question.type:TXT AND dns.question.name:*{suspicious_domain}*"
+      - "network.bytes_out:>1000000 AND destination.port:53"
+      - "dns.question.name:/.{50,}/ AND event.category:dns"
+  - id: 4
+    action: "hunt_large_transfers"
+    description: "Search for unusually large outbound data transfers"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "network.bytes_out:>50000000 AND NOT destination.ip:(10.* OR 172.16.* OR 192.168.*)"
+      - "url.original:(*upload* OR *transfer* OR *share*) AND network.bytes_out:>10000000"
+      - "destination.port:(443 OR 80) AND network.bytes_out:>100000000"
+  - id: 5
+    action: "identify_data_accessed"
+    description: "Determine what data was accessed before exfiltration using file access logs"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "event.category:file AND event.action:read AND user.name:{suspect_user}"
+      - "process.name:(7z.exe OR rar.exe OR zip.exe OR tar.exe) AND event.category:process"
+  - id: 6
+    action: "correlate_timeline"
+    description: "Build a timeline of data access, staging, and exfiltration"
+    automated: true
+    agent: "correlation"
+  - id: 7
+    action: "block_exfil_channel"
+    description: "Block the exfiltration destination at network perimeter"
+    automated: false
+    soc_instruction: "Block destination {exfil_destination} at firewall. Add to DNS sinkhole. Monitor for fallback channels."
+  - id: 8
+    action: "assess_impact"
+    description: "Determine what data was exfiltrated and notify stakeholders"
+    automated: false
+    soc_instruction: "Identify data classification of accessed files. Notify data owner and legal team if PII/regulated data involved."
+  - id: 9
+    action: "generate_report"
+    description: "Generate incident report with data impact assessment and MISP event"
+    automated: true
+    agent: "reporting"

@@ -1,0 +1,13 @@
+{
+  "name": "Lazarus Group",
+  "aliases": ["Hidden Cobra", "Guardians of Peace", "ZINC", "Diamond Sleet"],
+  "origin": "North Korea",
+  "target_sectors": ["financial", "defense", "technology", "cryptocurrency", "energy"],
+  "mitre_techniques": [
+    "T1566.001", "T1059.001", "T1021.002", "T1071.001", "T1486",
+    "T1003.001", "T1055", "T1041", "T1190", "T1547.001"
+  ],
+  "description": "Lazarus Group is a North Korean state-sponsored APT group active since at least 2009. Known for financially motivated attacks including the 2014 Sony Pictures hack, Bangladesh Bank heist (2016), WannaCry ransomware (2017), and cryptocurrency exchange attacks. Uses sophisticated custom malware, supply chain attacks, and social engineering. Known for targeting financial institutions and cryptocurrency platforms for revenue generation.",
+  "known_malware": ["Manuscrypt", "ThreatNeedle", "BLINDINGCAN", "DRATzarus", "COPPERHEDGE", "AppleJeus"],
+  "infrastructure": "Uses compromised web servers as C2, TOR exit nodes, bulletproof hosting. Known to use legitimate cloud services for staging. Frequently rotates infrastructure and uses multi-stage payload delivery."
+}

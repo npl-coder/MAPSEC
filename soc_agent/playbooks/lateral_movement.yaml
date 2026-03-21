@@ -1,0 +1,69 @@
+name: "Lateral Movement Investigation Playbook"
+trigger_keywords:
+  - lateral movement
+  - psexec
+  - wmic
+  - pass the hash
+  - pass the ticket
+  - remote execution
+  - smb brute force
+  - rdp brute force
+  - internal pivot
+severity_threshold: "HIGH"
+mitre_techniques:
+  - "T1021.001"  # Remote Desktop Protocol
+  - "T1021.002"  # SMB/Windows Admin Shares
+  - "T1021.006"  # Windows Remote Management
+  - "T1047"      # Windows Management Instrumentation
+  - "T1053.005"  # Scheduled Task
+  - "T1003"      # OS Credential Dumping
+  - "T1550.002"  # Pass the Hash
+steps:
+  - id: 1
+    action: "identify_source"
+    description: "Identify the initial compromised host and how lateral movement began"
+    automated: true
+    agent: "triage"
+  - id: 2
+    action: "enrich_source_ip"
+    description: "Enrich the source IP and any external C2 infrastructure involved"
+    automated: true
+    agent: "ioc_enrichment"
+  - id: 3
+    action: "hunt_smb_activity"
+    description: "Search for SMB/RDP/WinRM connections from the compromised host"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "source.ip:{compromised_host} AND destination.port:(445 OR 135 OR 3389 OR 5985 OR 5986)"
+      - "process.name:(psexec.exe OR wmic.exe OR winrs.exe OR mstsc.exe)"
+      - "event.category:authentication AND source.ip:{compromised_host}"
+  - id: 4
+    action: "hunt_credential_access"
+    description: "Check for credential dumping activity on compromised hosts"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "process.name:(mimikatz* OR procdump* OR lsass*) AND event.category:process"
+      - "file.path:*\\\\lsass* AND event.category:file"
+      - "event.code:(4648 OR 4624) AND winlog.logon_type:(3 OR 10)"
+  - id: 5
+    action: "map_blast_radius"
+    description: "Correlate all findings to determine which hosts were accessed"
+    automated: true
+    agent: "correlation"
+  - id: 6
+    action: "isolate_compromised"
+    description: "Isolate all identified compromised hosts"
+    automated: false
+    soc_instruction: "Isolate the following hosts from the network: {compromised_hosts}. Coordinate with IT ops."
+  - id: 7
+    action: "reset_credentials"
+    description: "Reset credentials for all accounts used during lateral movement"
+    automated: false
+    soc_instruction: "Reset passwords for: {compromised_accounts}. Revoke Kerberos tickets. Consider resetting KRBTGT if domain compromise suspected."
+  - id: 8
+    action: "generate_report"
+    description: "Generate incident report with full attack timeline and MISP event"
+    automated: true
+    agent: "reporting"

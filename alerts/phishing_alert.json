@@ -1,0 +1,22 @@
+{
+  "id": "alert-2026-0315-002",
+  "source": "email-gateway",
+  "timestamp": "2026-03-15T09:30:00Z",
+  "description": "Suspected spear phishing email with malicious attachment detected by email gateway",
+  "data": {
+    "sender": "hr-department@company-updates.evil.com",
+    "recipient": "john.doe@company.com",
+    "subject": "Urgent: Updated Employee Benefits Package 2026",
+    "attachment_name": "Benefits_Update_2026.docm",
+    "attachment_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attachment_md5": "d41d8cd98f00b204e9800998ecf8427e",
+    "urls_in_body": [
+      "https://company-updates.evil.com/benefits/login",
+      "https://bit.ly/3xM4lware"
+    ],
+    "sender_ip": "91.234.100.22",
+    "reply_to": "noreply@company-updates.evil.com",
+    "x_originating_ip": "91.234.100.22",
+    "alert_rule": "Suspicious attachment with macro-enabled document"
+  }
+}

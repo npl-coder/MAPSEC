@@ -1,0 +1,61 @@
+name: "Ransomware Response Playbook"
+trigger_keywords:
+  - ransomware
+  - file encryption
+  - ransom note
+  - cryptolocker
+  - locked files
+  - bitcoin ransom
+  - decrypt files
+severity_threshold: "CRITICAL"
+mitre_techniques:
+  - "T1486"   # Data Encrypted for Impact
+  - "T1490"   # Inhibit System Recovery
+  - "T1082"   # System Information Discovery
+  - "T1083"   # File and Directory Discovery
+  - "T1059"   # Command and Scripting Interpreter
+steps:
+  - id: 1
+    action: "isolate_host"
+    description: "Immediately isolate affected host from network to prevent spread"
+    automated: false
+    soc_instruction: "Contact network team to block {affected_host} at firewall level. Disable switch port if physical."
+  - id: 2
+    action: "preserve_evidence"
+    description: "Capture volatile memory and disk images before remediation"
+    automated: false
+    soc_instruction: "Take RAM dump and full disk image of affected systems for forensic analysis."
+  - id: 3
+    action: "capture_iocs"
+    description: "Extract all IOCs from affected system — ransom note, file hashes, C2 domains, process names"
+    automated: true
+    agent: "ioc_enrichment"
+  - id: 4
+    action: "identify_ransomware_family"
+    description: "Identify ransomware variant using file hashes, ransom note text, and encrypted file extensions"
+    automated: true
+    agent: "ioc_enrichment"
+  - id: 5
+    action: "hunt_lateral_movement"
+    description: "Hunt for lateral movement from initial infection point across the environment"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "process.name:(psexec.exe OR wmic.exe OR powershell.exe) AND event.category:process"
+      - "source.ip:{initial_host} AND destination.port:(445 OR 135 OR 3389)"
+      - "file.extension:(locked OR encrypted OR crypt) AND event.category:file"
+  - id: 6
+    action: "check_backups"
+    description: "Verify backup integrity for affected systems"
+    automated: false
+    soc_instruction: "Check backup status and last successful backup date for all affected hosts. Verify backups are not compromised."
+  - id: 7
+    action: "block_c2"
+    description: "Block identified C2 infrastructure at perimeter firewalls and DNS"
+    automated: false
+    soc_instruction: "Add C2 domains and IPs to firewall blocklist and DNS sinkhole."
+  - id: 8
+    action: "generate_report"
+    description: "Generate incident report and create MISP event with all IOCs"
+    automated: true
+    agent: "reporting"

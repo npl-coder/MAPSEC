@@ -1,0 +1,26 @@
+{
+  "id": "alert-2026-0316-003",
+  "source": "opensearch",
+  "timestamp": "2026-03-16T14:45:00Z",
+  "description": "Anomalous DNS query volume with high-entropy subdomain names detected, possible DNS tunneling",
+  "data": {
+    "src_ip": "10.0.0.89",
+    "dst_ip": "8.8.8.8",
+    "domain": "aGVsbG8gd29ybGQ.data.exfil-c2.xyz",
+    "query_type": "TXT",
+    "query_count_1h": 4500,
+    "avg_subdomain_length": 48,
+    "bytes_out_1h": 15000000,
+    "src_hostname": "DEV-SERVER-089",
+    "alert_rule": "DNS tunneling detection - high entropy subdomains",
+    "related_domains": [
+      "c2hvcnQgcGF5bG9hZA.data.exfil-c2.xyz",
+      "ZXhmaWx0cmF0aW9u.cmd.exfil-c2.xyz"
+    ],
+    "additional_context": {
+      "baseline_dns_queries_1h": 120,
+      "anomaly_score": 0.97,
+      "network_zone": "development"
+    }
+  }
+}

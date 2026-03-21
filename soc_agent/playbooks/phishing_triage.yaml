@@ -1,0 +1,63 @@
+name: "Phishing Triage Playbook"
+trigger_keywords:
+  - phishing
+  - spear phishing
+  - suspicious email
+  - malicious attachment
+  - credential harvesting
+  - impersonation
+  - spoofed sender
+severity_threshold: "MEDIUM"
+mitre_techniques:
+  - "T1566.001"  # Spearphishing Attachment
+  - "T1566.002"  # Spearphishing Link
+  - "T1204.001"  # User Execution: Malicious Link
+  - "T1204.002"  # User Execution: Malicious File
+  - "T1589"      # Gather Victim Identity Information
+steps:
+  - id: 1
+    action: "extract_email_iocs"
+    description: "Extract all IOCs from the email — sender address, reply-to, URLs, attachment hashes, headers"
+    automated: true
+    agent: "triage"
+  - id: 2
+    action: "analyze_urls"
+    description: "Check all URLs against threat intelligence — VirusTotal, MISP, AbuseIPDB"
+    automated: true
+    agent: "ioc_enrichment"
+  - id: 3
+    action: "analyze_attachments"
+    description: "Submit file hashes to VirusTotal and MISP for malware family identification"
+    automated: true
+    agent: "ioc_enrichment"
+  - id: 4
+    action: "check_clicked"
+    description: "Search proxy/web logs for any user who clicked the malicious URL"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "url.original:*{malicious_domain}* AND event.category:web"
+      - "dns.question.name:{malicious_domain}"
+  - id: 5
+    action: "check_credentials"
+    description: "If credential harvesting page — check for compromised accounts"
+    automated: true
+    agent: "threat_hunter"
+    opensearch_queries:
+      - "event.category:authentication AND event.outcome:failure AND source.ip:{suspicious_ip}"
+      - "user.name:{affected_user} AND event.category:authentication AND event.outcome:success"
+  - id: 6
+    action: "quarantine_email"
+    description: "Search for and quarantine similar emails across all mailboxes"
+    automated: false
+    soc_instruction: "Use email admin console to search for emails from {sender} with subject matching pattern. Quarantine all matches."
+  - id: 7
+    action: "reset_credentials"
+    description: "Force password reset for any user who submitted credentials"
+    automated: false
+    soc_instruction: "Reset passwords and revoke sessions for affected users: {affected_users}"
+  - id: 8
+    action: "generate_report"
+    description: "Generate incident report and create MISP event"
+    automated: true
+    agent: "reporting"
