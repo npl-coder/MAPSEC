@@ -1,8 +1,6 @@
-# Requirements
+# Requirements for MISP MCP Server
 # MCP (Model Context Protocol) server framework
-# Provides FastMCP for building MCP servers
 mcp>=1.0.0
 
-# PyMISP - Python library for MISP (Malware Information Sharing Platform)
-# Used for interacting with MISP API (searching, creating events, etc.)
-pymisp>=2.4.0
+# Requests library for HTTP API calls to MISP
+requests

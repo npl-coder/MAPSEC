@@ -4,16 +4,16 @@ A Model Context Protocol (MCP) server that integrates with the MISP (Malware Inf
 
 ## Features
 
-- **Mac Malware Detection**: Search for the latest macOS-related malware samples
-- **Cross-Platform Threat Intelligence**: Search for threats affecting Windows, macOS, Linux, Android, iOS, and IoT devices
-- **Advanced Search Capabilities**: Search by attribute type, tag, threat actor, or TLP classification
-- **IoC Submission**: Submit new Indicators of Compromise directly to your MISP instance
-- **Threat Intelligence Reports**: Generate comprehensive reports based on MISP data
-- **MISP Statistics**: Get insights into your MISP instance's data
+- **Threat Intelligence Queries**: Retrieve malicious IPs, domains, and hashes from MISP
+- **Advanced Search**: Search for attributes, events, and threat details
+- **Event Management**: Create, publish, and manage MISP events
+- **IoC Management**: Add attributes, sightings, and tags to events
+- **Galaxy Integration**: Access galaxy clusters and event galaxies
+- **Feed Management**: List and manage MISP feeds
 
 ## Prerequisites
 
-- Python 3.10 or higher
+- Python 3.8 or higher
 - [MISP](https://github.com/MISP/MISP) instance with API access
 - API key with appropriate permissions
 
@@ -29,29 +29,28 @@ A Model Context Protocol (MCP) server that integrates with the MISP (Malware Inf
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install "mcp[cli]" pymisp
+   pip install -r requirements.txt
    ```
 
 ## Configuration
 
 Set the following environment variables to connect to your MISP instance:
 
-- `MISP_URL` - URL of your MISP instance (e.g., "https://misp.example.com")
-- `MISP_API_KEY` - Your MISP API key
-- `MISP_VERIFY_SSL` - Whether to verify SSL certificates (True/False)
+- `MISP_URL` - URL of your MISP instance (default: "https://misp.local")
+- `MISP_API_KEY` - Your MISP API key (required)
 
 ## Usage
 
 ### Running as a standalone server
 
 ```bash
-python misp_server.py
+python misp_mcp_server.py
 ```
 
 ### Testing with MCP Inspector
 
 ```bash
-mcp dev misp_server.py
+mcp dev misp_mcp_server.py
 ```
 
 ### Installing in Claude Desktop
@@ -75,96 +74,63 @@ Add the MISP MCP server configuration:
   "mcpServers": {
     "misp-intelligence": {
       "command": "python",
-      "args": ["/path/to/misp_server.py"],
+      "args": ["/path/to/misp_mcp_server.py"],
       "env": {
         "MISP_URL": "https://your-misp-instance.com",
-        "MISP_API_KEY": "your-api-key-here",
-        "MISP_VERIFY_SSL": "True"
+        "MISP_API_KEY": "your-api-key-here"
       }
     }
   }
 }
 ```
 
-Alternatively, use the MCP CLI:
-
-```bash
-mcp install misp_server.py --name "MISP Threat Intelligence" -v MISP_URL=https://your-misp-instance.com -v MISP_API_KEY=your-api-key
-```
-
 ## Available Tools
 
-### get_mac_malware
-Get the latest Mac-related malware samples from MISP.
+### Threat Intelligence Retrieval
 
-**Parameters:**
-- `days` (default: 30): Number of days to look back
-- `limit` (default: 10): Maximum number of results to return
+- `get_malicious_ips`: Get all malicious IP addresses marked for IDS
+- `get_malicious_domains`: Get all malicious domains marked for IDS
+- `get_malicious_hashes`: Get malicious file hashes (md5, sha1, sha256) marked for IDS
 
-### get_platform_malware
-Get the latest malware samples for a specific platform from MISP.
+### Search Tools
 
-**Parameters:**
-- `platform`: Platform to search for (windows, macos, linux, android, ios, iot)
-- `days` (default: 30): Number of days to look back
-- `limit` (default: 10): Maximum number of results to return
+- `search_ip_in_misp`: Check if an IP is present in MISP and marked for IDS
+- `search_attribute`: Search for any attribute by value (IP, domain, hash, url, etc.)
+- `get_threat_details`: Get full threat context for an indicator from MISP events
 
-### advanced_search
-Perform advanced searches in MISP.
+### Event Management
 
-**Parameters:**
-- `query_type`: Type of search (attribute_type, tag, threatactor, tlp)
-- `query_value`: Value to search for
-- `platform` (optional): Platform filter (windows, macos, linux, android, ios, iot)
-- `days` (default: 30): Number of days to look back
-- `limit` (default: 10): Maximum number of results to return
+- `list_misp_events`: List MISP events with metadata
+- `get_event`: Get full event details by ID
+- `get_event_indicators`: Get all IOCs for an event grouped by type
+- `search_events`: Search events with filters (tags, type, value, date range, etc.)
+- `search_attributes`: Search attributes with filters (type, category, tags, etc.)
 
-### submit_ioc
-Submit a new Indicator of Compromise (IoC) to MISP.
+### Event Creation and Modification
 
-**Parameters:**
-- `ioc_value`: The actual IoC value (e.g., hash, URL, IP)
-- `ioc_type`: Type of IoC (e.g., md5, sha256, url, ip-dst, filename)
-- `event_info`: Brief description of the event
-- `category` (default: "Artifacts dropped"): Category of the attribute
-- `platform` (optional): Platform affected (windows, macos, linux, android, ios, iot)
-- `tlp` (default: "amber"): Traffic Light Protocol level (white, green, amber, red)
-- `comment` (optional): Optional comment for the IoC
+- `add_event`: Create a new MISP event
+- `add_attribute`: Add an attribute to an existing event
+- `publish_event`: Publish an event to make it visible to the community
+- `add_sighting`: Add a sighting to an attribute (positive/negative/expiration)
+- `add_tag_to_event`: Add a tag to an event
+- `delete_event`: Delete an event by ID
 
-### generate_threat_report
-Generate a comprehensive threat intelligence report based on MISP data.
+### Metadata and Feeds
 
-**Parameters:**
-- `days` (default: 30): Number of days to include in the report
-- `platforms` (default: "all"): Comma-separated list of platforms or "all"
-- `threat_level` (default: "all"): Filter by threat level (low, medium, high, all)
-- `include_stats` (default: True): Whether to include statistics
+- `list_tags`: List available tags in MISP
+- `list_feeds`: List configured MISP feeds
+- `list_galaxy_clusters`: List galaxy clusters (MITRE, malware, etc.)
+- `get_event_galaxies`: Get galaxy clusters attached to an event
 
-### search_misp
-Search MISP for specific threats.
+## API Reference
 
-**Parameters:**
-- `query`: Search term (e.g., CVE ID, malware name, hash)
-- `days` (default: 30): Number of days to look back
+All tools return JSON responses. The server communicates via stdio using the MCP protocol.
 
-### get_misp_stats
-Get statistics about the MISP instance.
+## Security Notes
 
-## Available Resources
-
-### feeds://recent/{days}
-Get information about recent MISP feeds.
-
-**Parameters:**
-- `days` (default: 7): Number of days to look back
-
-## Example Queries with Claude
-
-1. "What are the latest Mac-related malware samples?"
-2. "Show me Windows malware from the last 2 weeks"
-3. "Search for CVE-2023-12345 in MISP"
-4. "Submit this IoC to MISP: 1a2b3c4d5e6f7g8h9i0j, type: md5, description: suspicious file found in phishing email"
-5. "Generate a threat intelligence report for the last month"
+- SSL certificate verification is disabled by default for local development
+- Ensure your MISP API key has appropriate permissions
+- Use HTTPS in production environments
 6. "What are the current MISP statistics?"
 7. "Get information about recent MISP feeds"
 8. "Perform an advanced search for TLP:RED events related to banking trojans"

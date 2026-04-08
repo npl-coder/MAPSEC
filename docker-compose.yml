@@ -78,6 +78,20 @@ services:
     networks:
       - mispnet
 
+  misp-mcp-server:
+    build: ./misp-mcp-server
+    environment:
+      - MISP_URL=${MISP_URL:-https://misp}
+      - MISP_API_KEY=${MISP_API_KEY:-}
+    volumes:
+      - ./misp-mcp-server:/app
+    networks:
+      - mispnet
+    depends_on:
+      - misp
+    stdin_open: true
+    tty: true
+
 volumes:
   opensearch-data:
   mariadb-data:
